@@ -1,109 +1,83 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- * @flow strict-local
- */
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, View } from 'react-native';
+import Geolocation from 'react-native-geolocation-service';
+import * as A from './src/components/atoms';
+import * as M from './src/components/molecules';
+import * as O from './src/components/organisms';
+import { getCurrentWeatherData, getForecastData } from './src/utils/fetchWeather';
+import getBg from './src/utils/fetchBg';
+import requestLocationPermission from './src/utils/requestLocationPermission';
 
-import React from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+const App = () => {
+  const [image, setImage] = useState({});
+  const [temp, setTemp] = useState('');
+  const [forecast, setForecast] = useState([{
+    day: '',
+    max: '',
+    min: ''
+  }]);
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+  useEffect(() => {
+    requestLocationPermission().then((res) => {
+      if (res) {
+        Geolocation.getCurrentPosition(
+          (position) => {
+            getCurrentWeatherData(position.coords.latitude, position.coords.longitude).then((res) => {
+              setTemp(res.temp);
+              getBg(res.query).then((res) => {
+                setImage({
+                  imgUrl: res.imgUrl,
+                  nome: res.nome,
+                  link: res.link,
+                  profileImg: res.profileImg
+                });
+              });
+            });
 
-const Section = ({children, title}) => {
-  const isDarkMode = useColorScheme() === 'dark';
+            getForecastData(position.coords.latitude, position.coords.longitude).then((res) => {
+              console.log(res);
+
+              setForecast(res);
+            });
+          },
+          (error) => {
+            console.log('geolocation error: ', [error.code, error.message]);
+          },
+          { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
+        );
+      } else {
+        console.log("location permission denied");
+      }
+    });
+  }, []);
+
   return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
+    <View style={styles.container}>
+      <A.ImageBg imageSrc={image.imgUrl}>
+        <O.TempSection currentWeather={temp} forecastData={forecast} />
+        <M.CopySection authorName={image.nome} />
+      </A.ImageBg>
     </View>
   );
 };
 
-const App = () => {
-  const isDarkMode = useColorScheme() === 'dark';
-
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-  };
-
-  return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Noele é:">
-            Chata para um caceta.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
-};
-
 const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
+  container: {
+    flex: 1
   },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
+  text: {
+    color: "white",
+    fontSize: 42,
+    lineHeight: 84,
+    fontWeight: "bold",
+    textAlign: "center",
   },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
+  input: {
+    height: 40,
+    width: 100,
+    margin: 12,
+    borderWidth: 1,
+    padding: 10,
   },
 });
 
