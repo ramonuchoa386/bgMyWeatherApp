@@ -1,22 +1,14 @@
 import React from 'react';
-import {
-  StyleSheet,
-  Text,
-  View
-} from 'react-native';
- 
+import {StyleSheet, View} from 'react-native';
+
+import ForecastItem from './forecast-item';
+
 const ForecastSection = ({forecast}) => {
   return (
     <View style={styles.forecastWrapper}>
-      {forecast.map((forecast, index) => {
-        return (
-          <View key={index}>
-            <Text>dia: {forecast.day}</Text>
-            <Text>max: {forecast.max}</Text>
-            <Text>min: {forecast.min}</Text>
-          </View>
-        );
-      })}
+      {forecast.map((forecast, index) => (
+        <ForecastItem key={index} forecast={forecast} />
+      ))}
     </View>
   );
 };
@@ -26,13 +18,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginTop: 30,
     marginBottom: 130,
-    backgroundColor: 'rgba(0, 0, 0, .3)',
     paddingTop: 20,
     paddingLeft: 20,
     paddingRight: 20,
     paddingBottom: 20,
-  }
+  },
 });
- 
+
 export default ForecastSection;
- 
